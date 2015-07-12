@@ -122,6 +122,8 @@ if(!String.prototype.formatNum) {
 			// Inside this function 'this' is the calendar instance
 			next();
 		},
+        onEventsChanged: function(events) {
+        },
 		onAfterViewLoad: function(view) {
 			// Inside this function 'this' is the calendar instance
 		},
@@ -131,6 +133,15 @@ if(!String.prototype.formatNum) {
 		onAfterModalHidden: function(events) {
 			// Inside this function 'this' is the calendar instance
 		},
+        eventSortFunc: function(a, b) {
+            var delta;
+            delta = a.start - b.start;
+            if(delta == 0) {
+                delta = a.end - b.end;
+            }
+            return delta;
+        },
+
 		// -------------------------------------------------------------
 		// INTERNAL USE ONLY. DO NOT ASSIGN IT WILL BE OVERRIDDEN ANYWAY
 		// -------------------------------------------------------------
@@ -741,11 +752,23 @@ if(!String.prototype.formatNum) {
 		}
 
 		this._init_position();
-		this._loadEvents();
+        if (this.options.events_source != "external"){
+            this._loadEvents();
+        }
 		this._render();
 
 		this.options.onAfterViewLoad.call(this, this.options.view);
 	};
+
+    Calendar.prototype.refresh = function() {
+        this._render();
+    };
+
+    Calendar.prototype.setEvents = function(events) {
+        this.options.events = events;
+        this.options.events.sort(this.options.eventSortFunc);
+        this.options.onEventsChanged.call(this, this.options.events);
+    };
 
 	Calendar.prototype.navigate = function(where, next) {
 		var to = $.extend({}, this.options.position);
